@@ -1,0 +1,430 @@
+<html>
+  <head>
+    <title>SVG Game Engine - (C) 2021 - Michael K. Pellegrino</title>
+    <script language="javascript">
+     
+      /* this array contains all of the elements in the SVG window */
+      var walls=[];
+      var objects=[];
+      var bullets=[];
+      var bubbles=[];
+      var my_interval_timer;
+      var my_clock_timer;
+      var tick=0;
+      
+      /* allow the bigger circle to be moved by arrow key presses */
+      document.addEventListener('keydown', Kdown);
+      document.addEventListener('keyup', Kup);
+      
+      function Kup(e)
+      {
+	  objects[0].setAttribute('dir',0);
+	  objects[0].setAttribute('spindir','0');
+	  objects[0].setAttribute('io','off');
+      }
+      
+      function Kdown(e)
+      {
+	  var K=e.keyCode;
+	  if(K==38||K==73)
+	  {
+	      objects[0].setAttribute('dir',1);
+	      objects[0].setAttribute('io','on');return;
+	  }
+	  if(K==40||K==75)
+	  {
+	      objects[0].setAttribute('dir',-1);
+	      objects[0].setAttribute('io','on');return;
+	  }
+	  if(K==37||K==74)
+	  {
+	      /*rotate(objects[0],10,100,100);*/
+	      objects[0].setAttribute('spindir','-1');return;
+	  }
+	  if(K==39||K==76)
+	  {
+	      objects[0].setAttribute('spindir','1');return;
+	  }
+	  if(K==32)
+	  {
+	      fire();
+	      /*objects[1].setAttribute('dir','1');return;*/
+	  }
+	  if(K==192)
+	  {
+	      /*objects[1].setAttribute('dir','2');return;*/
+	  }
+	  objects[0].setAttribute('dir','0');
+      }
+      
+      function onload()
+      {
+	  objects=document.querySelectorAll('[construct="object"]');
+	  walls=document.querySelectorAll('[construct="wall"]');
+	  bullets=document.querySelectorAll('[construct="bullet"]');
+	  bubbles=document.querySelectorAll('[construct="bubble"]');
+	  /* TODO: Scramble bubble initial positions here */
+	  
+	  my_interval_timer=setInterval(update_positions,5);
+	  /*my_clock_timer=setInterval(update_clock,1000)*/
+	  /* get the time and set a variable equal to it */
+      }
+
+      function update_clock()
+      {
+	  document.getElementById("htmlclock").innerHTML = "Clock: " + tick++;
+      }
+
+      function fire()
+      {
+	  for( var i=0; i<bullets.length; i++ )
+	  {
+	      if(bullets[i].getAttribute("fired") != "true")
+	      {
+		  bullets[i].setAttribute("fired","true");
+		  bullets[i].setAttribute("cx", getX() );
+		  bullets[i].setAttribute("cy", getY() );
+		  bullets[i].setAttribute("io", "on" );
+		  bullets[i].setAttribute("heading", objects[0].getAttribute('heading'));
+		  return;
+	      }
+	  }
+
+      }
+
+      function moveBubbles()
+      {
+	  for( var i=0; i<bubbles.length; i++ )
+	  {
+	      if( bubbles[i].getAttribute("io") == "on")
+	      {
+		  var h=Number(bubbles[i].getAttribute("heading"));
+		  var v=Number(bubbles[i].getAttribute("speed"));
+		  s=v*Math.round(1000*Math.sin((h+90)*Math.PI/180))/1000;
+		  c=v*Math.round(1000*Math.cos((h+90)*Math.PI/180))/1000;
+		  var bubblex=Number(bubbles[i].getAttribute("cx"));
+		  var bubbley=Number(bubbles[i].getAttribute("cy"));
+		  if( willCollideWithWall( bubblex+s, bubbley+c )==1)
+		  {
+		      bubbles[i].setAttribute("heading", Math.floor(Math.random() * 359) );
+		      return;
+		  }
+		  bubbles[i].setAttribute("cx", Number(bubbles[i].getAttribute("cx"))+Number(s) );
+		  bubbles[i].setAttribute("cy", Number(bubbles[i].getAttribute("cy"))+Number(c) );
+	      }
+	  }
+      }
+
+      function willCollideWithBubble(x,y)
+      {
+	  for( var i=0; i<bubbles.length; i++ )
+	  {
+	      var bx=Number(bubbles[i].getAttribute("cx"));
+	      var by=Number(bubbles[i].getAttribute("cy"));
+	      var br=Number(bubbles[i].getAttribute("r"));
+	      if( (bx-x)*(bx-x) + (by-y)*(by-y) <= br*br )
+	      {
+		  return i;
+	      }
+	  }
+	  return -1;
+      }
+
+      function bubbleHit( elm )
+      {
+	  var r=Number(elm.getAttribute( "r" ));
+	  if( r < 6 )
+	  {
+	      elm.setAttribute("cx","-10");
+	      elm.setAttribute("cy","-10");
+	      elm.setAttribute("io","off");
+	      return;
+	  }
+	  r=r-1;
+	  var s=Number(elm.getAttribute( "speed" ));
+	  s=s+0.02;
+	  elm.setAttribute("r",r);
+	  elm.setAttribute("speed",s);
+      }
+      
+      function moveBullets()
+      {
+	  for( var i=0; i<bullets.length; i++ )
+	  {
+	      if( bullets[i].getAttribute("io") == "on")
+	      {
+		  var h=Number(bullets[i].getAttribute("heading"));
+		  s=Math.round(1000*Math.sin((h+90)*Math.PI/180))/1000;
+		  c=Math.round(1000*Math.cos((h+90)*Math.PI/180))/1000;
+		  var bulletx=Number(bullets[i].getAttribute("cx"));
+		  var bullety=Number(bullets[i].getAttribute("cy"));
+		  if( willCollideWithWall( bulletx+s, bullety+c )==1)
+		  {
+		      bullets[i].setAttribute("io","off");
+		      bullets[i].setAttribute("fired","false");
+		      bullets[i].setAttribute("cx","0");
+		      bullets[i].setAttribute("cy","0");
+		      return;
+		  }
+		  var wCWB=willCollideWithBubble( bulletx+s, bullety+c );
+		  if( wCWB > -1)
+		  {
+		      bubbleHit( bubbles[wCWB] );
+		      bullets[i].setAttribute("io","off");
+		      bullets[i].setAttribute("fired","false");
+		      bullets[i].setAttribute("cx","0");
+		      bullets[i].setAttribute("cy","0");
+		      return;
+		  }
+		  bullets[i].setAttribute("cx", Number(bullets[i].getAttribute("cx"))+Number(s) );
+		  bullets[i].setAttribute("cy", Number(bullets[i].getAttribute("cy"))+Number(c) );
+	      }
+	  }
+      }
+
+      
+      function getX()
+      {
+	  var all_three=objects[0].getAttribute("points");
+	  var coords=all_three.split(" ");
+	  var A=coords[0].split(",");
+	  var B=coords[1].split(",");
+	  var C=coords[2].split(",");
+
+	  var centroidx=(Number(A[0])+Number(B[0])+Number(C[0]))/3;
+	  return( centroidx );
+	  
+      }
+      function getY()
+      {
+	  var all_three=objects[0].getAttribute("points");
+	  var coords=all_three.split(" ");
+	  var A=coords[0].split(",");
+	  var B=coords[1].split(",");
+	  var C=coords[2].split(",");
+	  var centroidy=(Number(A[1])+Number(B[1])+Number(C[1]))/3;
+	  return( centroidy );
+	  
+      }
+      function move( elm )
+      {
+	  if( elm.getAttribute('io') == 'off' ) return;
+	  var h=elm.getAttribute('heading');
+	  var d=elm.getAttribute('dir');
+	  
+	  s=Math.round(1000*Math.sin(Number(h)*Math.PI/180))/1000;
+	  c=Math.round(1000*Math.cos(Number(h)*Math.PI/180))/1000;
+
+	  s=s*d;
+	  c=c*d;
+	  
+	  var all_three=elm.getAttribute("points");
+	  /*console.log( all_three );*/
+	  var coords=all_three.split(" ");
+	  var A=coords[0].split(",");
+	  var B=coords[1].split(",");
+	  var C=coords[2].split(",");
+	  
+	  var tmp=0;
+	  tmp=Number(A[0])+Number(c); A[0]=tmp;
+	  tmp=Number(A[1])-Number(s); A[1]=tmp;
+
+	  if(willCollideWithBubble(A[0],A[1])>-1)
+	  {
+	      playerdies();
+	      return;
+	  }
+	  if(willCollideWithWall(A[0],A[1])) return;
+
+	  
+	  tmp=Number(B[0])+Number(c); B[0]=tmp;
+	  tmp=Number(B[1])-Number(s); B[1]=tmp;
+	  if(willCollideWithBubble(B[0],B[1])>-1)
+	  {
+	      playerdies();
+	      return;
+	  }
+
+	  if(willCollideWithWall(B[0],B[1])) return;
+
+	  
+	  tmp=Number(C[0])+Number(c); C[0]=tmp;
+	  tmp=Number(C[1])-Number(s); C[1]=tmp;
+	  if(willCollideWithBubble(C[0],C[1])>-1)
+	  {
+	      playerdies();
+	      return;
+	  }
+	  if(willCollideWithWall(C[0],C[1])) return;
+
+	  if(willCollideWithWall(getX(),getY()))
+	  {
+	      playerdies();
+	      return;
+	  }
+	  
+	  elm.setAttribute("points",A[0]+","+A[1]+" "+B[0]+","+B[1]+" "+C[0]+","+C[1]);
+
+
+	  return;
+      }
+
+      function playerdies()
+      {
+      }
+      
+      function update_positions()
+      {
+	  for( var i=0; i<objects.length; i++ )
+	  {
+	      move(objects[i]);
+	      spin(objects[i]);
+	  }
+	  moveBullets();
+	  moveBubbles();
+      }
+
+      /* Check for a collision between and (x,y) and
+	 any element in the 'walls' array */
+      function willCollideWithWall( x, y )
+      {
+	  for(  i=0; i<walls.length; i++ )
+	  {
+	      var s2x1= Number(walls[i].getAttribute('x1'));
+	      var s2x2= Number(walls[i].getAttribute('x2'));
+	      var s2y1= Number(walls[i].getAttribute('y1'));
+	      var s2y2= Number(walls[i].getAttribute('y2'));
+
+	      var TLx;
+	      var TLy;
+	      var BRx;
+	      var BRy;
+	
+	      /* create the bounding box */
+	      /* TL: Top Left Corner */
+	      /* BR: Bottom Right Corner */
+	      if(s2x1==s2x2)
+	      {
+		  TLx=s2x1-1; BRx=s2x2+1
+	      }
+	      else if( s2x1<s2x2 )
+	      {
+		  TLx=s2x1; BRx=s2x2;
+	      }
+	      else 
+	      {
+		  TLx=s2x2; BRx=s2x1;
+	      }
+	      if(s2y1==s2y2)
+	      {
+		  TLy=s2y1-1; BRy=s2y2+1;
+	      }
+	      else if( s2y1<s2y2 )
+	      {
+		  TLy=s2y1;BRy=s2y2;
+	      }
+	      else
+	      {
+		  TLy=s2y2;BRy=s2y1;
+	      }
+	      
+	      if( (x <= BRx) && (x >= TLx) && (y <= BRy ) && (y >= TLy) ) return 1;
+	  }
+	  return 0;
+      }
+      function spin(elm)
+      {
+	  var d = Number(elm.getAttribute("spindir"));
+	  var h = Number(elm.getAttribute("heading"));
+
+	  if( Math.abs(d) != 1 ) return;
+	  
+	  var all_three=elm.getAttribute("points");
+	  /* console.log( all_three ); */
+	  var coords=all_three.split(" ");
+	  var A=coords[0].split(",");
+	  var B=coords[1].split(",");
+	  var C=coords[2].split(",");
+
+	  var centroidx=(Number(A[0])+Number(B[0])+Number(C[0]))/3;
+	  var centroidy=(Number(A[1])+Number(B[1])+Number(C[1]))/3;
+	  
+	  var s=Math.sin(d*Math.PI/180);
+	  var c=Math.cos(d*Math.PI/180);
+
+	  A[0]-=centroidx;
+	  A[1]-=centroidy;
+	  var Ata =(Number(c*A[0])-Number(s*A[1]));
+	  var Atb =(Number(s*A[0])+Number(c*A[1]));
+	  A[0] = Ata+centroidx;
+	  A[1] = Atb+centroidy;
+	  
+	  B[0]-=centroidx;
+	  B[1]-=centroidy;
+	  var Bta=(Number(c*B[0])-Number(s*B[1]));
+	  var Btb=(Number(s*B[0])+Number(c*B[1]));
+	  B[0]=Bta+centroidx;
+	  B[1]=Btb+centroidy;
+	  
+	  C[0]-=centroidx;
+	  C[1]-=centroidy;
+	  var Cta=(Number(c*C[0])-Number(s*C[1]));
+	  var Ctb=(Number(s*C[0])+Number(c*C[1]));
+	  C[0]=Cta+centroidx;
+	  C[1]=Ctb+centroidy;
+
+	  if(willCollideWithWall(A[0],A[1])==1 || willCollideWithWall(B[0],B[1])==1 ||  willCollideWithWall(C[0],C[1])==1 )
+	  {
+	      return;
+	  }
+	  h-=d;
+	  elm.setAttribute("heading", h );
+
+	  all_three="";
+	  all_three+=A[0]+","+A[1]+" "+B[0]+","+B[1]+" "+C[0]+","+C[1];
+
+	  
+	  elm.setAttribute("points",A[0]+","+A[1]+" "+B[0]+","+B[1]+" "+C[0]+","+C[1]);
+      }
+
+    </script>
+  </head>
+  <body onload="onload();">
+    <center>
+
+      <svg width="500" height="500" viewBox="0 0 640 640">
+	<!--<Svg width="1240px" height="1240px" version="1.1">
+	    <defs>
+	    </defs>-->
+	    <polygon io="off" heading="90" id="object2" construct="object" points="315,315 325,315 320,300" spindir="0" style="fill:#0000FF"/>
+	    <circle io="off" heading="90" id="bullet0" construct="bullet" cx="-10" cy="0" r="2" style="fill:#000000"/>
+	    <circle io="off" heading="90" id="bullet1" construct="bullet" cx="-10" cy="0" r="2" style="fill:#FF0000"/>
+	    <circle io="off" heading="90" id="bullet2" construct="bullet" cx="-10" cy="0" r="2" style="fill:#00FF00"/>
+	    <circle io="off" heading="90" id="bullet3" construct="bullet" cx="-10" cy="0" r="2" style="fill:#0000FF"/>
+	    <circle io="off" heading="90" id="bullet4" construct="bullet" cx="-10" cy="0" r="2" style="fill:#000000"/>
+	    <circle io="off" heading="90" id="bullet5" construct="bullet" cx="-10" cy="0" r="2" style="fill:#00F0F"/>
+	    
+	    <circle speed="1" io="on" heading="90" id="bubble0" construct="bubble" cx="40" cy="30" r="10" style="fill:#FF0000"/>
+	    <circle speed="1" io="on" heading="90" id="bubble1" construct="bubble" cx="40" cy="30" r="10" style="fill:#FF0000"/>
+	    <circle speed="1" io="on" heading="90" id="bubble2" construct="bubble" cx="40" cy="30" r="10" style="fill:#FF0000"/>
+
+
+	    	    <circle speed="1" io="on" heading="90" id="bubble2" construct="bubble" cx="40" cy="30" r="10" style="fill:#FF0000"/>
+	    <circle speed="1" io="on" heading="90" id="bubble2" construct="bubble" cx="40" cy="30" r="10" style="fill:#FF0000"/>
+	    <circle speed="1" io="on" heading="90" id="bubble2" construct="bubble" cx="40" cy="30" r="10" style="fill:#FF0000"/>
+	    <circle speed="1" io="on" heading="90" id="bubble2" construct="bubble" cx="40" cy="30" r="10" style="fill:#FF0000"/>
+	    <circle speed="1" io="on" heading="90" id="bubble2" construct="bubble" cx="40" cy="30" r="10" style="fill:#FF0000"/>
+	    <circle speed="1" io="on" heading="90" id="bubble2" construct="bubble" cx="40" cy="30" r="10" style="fill:#FF0000"/>
+
+	    <!--<circle dir="0" id="AI1" construct="ai" steps_left="30" r="5" cx="250" cy="495" fill="blue"/>-->      
+      
+	    <!-- Border Walls -->
+	    <line construct="wall" id="west-wall" x1="10" y1="10" x2="10" y2="630" stroke-width="2" stroke="#000000"/>
+	    <line construct="wall" id="north-wall" x1="10" y1="10" x2="630" y2="10" stroke-width="2" stroke="#000000"/>
+	    <line construct="wall" id="east-wall" x1="630" y1="10" x2="630" y2="630" stroke-width="2" stroke="#000000"/>
+	    <line construct="wall" id="south-wall" x1="10" y1="630" x2="630" y2="630" stroke-width="2" stroke="#000000"/>
+	    
+	    
+	</svg>
+</html>
+

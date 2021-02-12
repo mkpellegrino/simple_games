@@ -51,7 +51,7 @@
 	  }
 	  if(K==32)
 	  {
-	      fire();return;
+	      fire();
 	  }
 	  if(K==192)
 	  {
@@ -238,7 +238,7 @@
       {
 	  var r=Number(elm.getAttribute( "r" ));
 	  score=score+(110-r*10);
-	  update_score();
+	  //update_score();
 	  if( r < 6 )
 	  {
 	      elm.setAttribute("cx","-10");
@@ -688,5 +688,7 @@
 
 	</svg>
 	<p id="htmlscore">Score: 0</p>
+	<p>Arrow Keys to Move.  Space Bar to shoot.</p>
+	</center>
 </html>
 

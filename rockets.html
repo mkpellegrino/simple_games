@@ -15,6 +15,7 @@
       var tick=0;
       var remaining_lives=2;
       var score=0;
+      var level_up_at=0;
       
       /* allow the bigger circle to be moved by arrow key presses */
       document.addEventListener('keydown', Kdown);
@@ -50,8 +51,7 @@
 	  }
 	  if(K==32)
 	  {
-	      fire();
-	      /*objects[1].setAttribute('dir','1');return;*/
+	      fire();return;
 	  }
 	  if(K==192)
 	  {
@@ -68,6 +68,7 @@
 	  bullets=document.querySelectorAll('[construct="bullet"]');
 	  bubbles=document.querySelectorAll('[construct="bubble"]');
 	  anims=document.querySelectorAll('[construct="anim"]');
+	  level_up_at=bubbles.length;
 
 	  for( var i=0; i<anims.length; i++ )
 	  {
@@ -79,6 +80,10 @@
 
 	  /* TODO: Scramble bubble initial positions here */
 	  randomize_bubbles();
+	  for( var i=0; i<bubbles.length; i++ )
+	  {
+	      bubbles[i].setAttribute("io","on");
+	  }
 	  my_interval_timer=setInterval(update_positions,5);
 	  /*my_clock_timer=setInterval(update_clock,1000)*/
 	  /* get the time and set a variable equal to it */
@@ -232,14 +237,20 @@
       function bubbleHit( elm )
       {
 	  var r=Number(elm.getAttribute( "r" ));
+	  score=score+(110-r*10);
+	  update_score();
 	  if( r < 6 )
 	  {
 	      elm.setAttribute("cx","-10");
 	      elm.setAttribute("cy","-10");
 	      elm.setAttribute("io","off");
+	      level_up_at--;
+	      if( level_up_at == 0 )
+	      {
+		  complete_reset();
+	      }
 	      return;
 	  }
-	  score=score+( 110-r*10);
 	  document.getElementById("htmlscore").innerHTML = "Score: " + score;
 	  r=r-1;
 	  var s=Number(elm.getAttribute( "speed" ));
@@ -394,11 +405,29 @@
 	      alert( "GAME OVER\nSCORE: " + score );
 	      location.reload();
 	  }
-	  /* reset bubbles to new locations */
-	  randomize_bubbles();
       }
       
 
+      function complete_reset()
+      {
+	  objects[0].setAttribute("points","315,315 325,315 320,300");
+	  objects[0].setAttribute("heading","90");
+	  objects[0].setAttribute("io","on");
+	  level_up_at=bubbles.length;
+	  for( var i=0; i<objects.length; i++ )
+	  {
+	      objects[i].setAttribute("io","on");
+
+	  }
+	  for( var i=0; i<bubbles.length; i++ )
+	  {
+	      bubbles[i].setAttribute("io","on");
+	      bubbles[i].setAttribute("r","10");
+	  }
+	  /* reset bubbles to new locations */
+	  randomize_bubbles();
+
+      }
       function reset()
       {
 	  objects[0].setAttribute("points","315,315 325,315 320,300");
@@ -414,6 +443,9 @@
 	  {
 	      bubbles[i].setAttribute("io","on");
 	  }
+	  /* reset bubbles to new locations */
+	  randomize_bubbles();
+
 
       }
       function update_positions()
@@ -436,6 +468,7 @@
 	 any element in the 'walls' array */
       function willCollideWithWall( x, y )
       {
+	  if( x>640 || y>640 || x<5 || y<5 ) return 1;
 	  for(  i=0; i<walls.length; i++ )
 	  {
 	      var s2x1= Number(walls[i].getAttribute('x1'));

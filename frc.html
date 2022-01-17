@@ -1,0 +1,1095 @@
+<html>
+  <!--   FRC Robotics AI Engine   -->
+  <!--  By Michael K. Pellegrino  -->
+  <!--      January 13, 2022      -->
+  
+  <head>
+    <title>SVG FRC Game Engine - (C) 2021 - Michael K. Pellegrino</title>
+    <script language="javascript">
+
+      var ROBOT_SPEED=0.6;  /* out of 10 */
+      var OPPONENT_SPEED=5;
+      /* this array contains all of the elements in the SVG window */
+      var walls=[];
+      var balls=[];
+      var objects=[];
+      var bullets=[];
+      var players=[];
+      var opponents=[];
+      var deadplayerparts=[];
+      var anims=[];
+      var aliens=[];
+      var my_interval_timer;
+      var my_clock_timer;
+      var tick=0;
+      var remaining_lives=2;
+      var score=0;
+      var level_up_at=0;
+
+      var heading=0;
+      
+      /* allow the bigger circle to be moved by arrow key presses */
+      document.addEventListener('keydown', Kdown);
+      document.addEventListener('keyup', Kup);
+      function goalComplete( elm )
+      {
+	  oppLog( "goal: " + getCurrentGoal(elm ) + " completed" );
+	  if( setCurrentGoal( elm, popGoal(elm)) == null )
+	  {
+	      oppLog( "<b>No More Goals</b>" );
+	      return;
+	  }
+	  resetGoal(elm);
+	  oppLog( "goal: " + getCurrentGoal( elm ) + " started" );
+	  return;
+      }
+      
+      function taskComplete( elm )
+      {
+	  oppLog( "task: " + getCurrentTask(elm ) + " completed" );
+	  if( setCurrentTask( elm, popTask(elm) ) == "" )
+	  {
+	      oppLog( "<b>No More Tasks</b>" );
+	      goalComplete( elm );
+	      return;
+	  }
+	  
+	  oppLog( "task: " + getCurrentTask( elm ) + " started" );
+      }
+
+      function plaLog( text )
+      {
+	  //document.getElementById("plalog").innerHTML = text;
+      }
+      function oppLog( text )
+      {
+	  document.getElementById("opplog").innerHTML += text + "<br>";
+      }
+      function msg( text )
+      {
+	  document.getElementById("messages").innerHTML = text;
+      }
+      
+      function msg2( text )
+      {
+	  document.getElementById("coll").innerHTML = text;
+      }
+      function Kup(e)
+      {
+
+	  if(e.keyCode==37||e.keyCode==74||e.keyCode==39||e.keyCode==76)
+	  {
+	      /* left or right off */
+	      players[0].setAttribute('spindir','0');
+	  }
+	  else if( e.keyCode==40||e.keyCode==75 )
+	  {
+	      /* down off */
+	      players[0].setAttribute("v",'0');
+	  }
+	  else if( e.keyCode==32 )
+	  {
+	      /* space off */
+	  }
+	  else if( e.keyCode==38 || e.keyCode==73 )
+	  {
+	      /* up off */
+	      players[0].setAttribute('v','0');
+	  }
+      }
+
+      function setLocation( elm, text )
+      {
+	  elm.setAttribute("location", text );
+      }
+
+      function getLocation( elm )
+      {
+	  return elm.getAttribute("location");
+      }
+      
+      function whichWay(h, x1, x2)
+      {
+	  oppLog( "<i>Determining which way to spin.</i>" );
+	  if( (h>90)&&(h<235) && (x1<x2))
+	  {
+	      oppLog( "<i><b>Left</b></i>" );
+	      return -1;
+	  }
+	  else if( (h>90)&&(h<235) && (x1>x2))
+	  {
+	      oppLog( "<i><b>Right</b></i>" );
+
+	      return 1;
+	  }
+	  else if( (h<90)&&(x1<x2) )
+	  {
+	      oppLog( "<i><b>Right</b></i>" );
+	      return 1;
+	  }
+	  else
+	  {
+	      oppLog( "<i><b>Left</b></i>" );
+	      return -1;
+	  }
+	  
+      }
+      
+      function Kdown(e)
+      {
+	  var K=e.keyCode;
+	  if(K==38||K==73)
+	  {
+	      /* up */
+	      players[0].setAttribute("v",5);
+	  }
+	  if(K==40||K==75)
+	  {
+	      /* down */
+	      players[0].setAttribute("v",-5);
+
+	  }
+	  if(K==37||K==74)
+	  {
+	      /* left */
+	      players[0].setAttribute('spindir','-1');return;
+	  }
+	  if(K==39||K==76)
+	  {
+	      /* right */
+	      players[0].setAttribute('spindir','1');return;
+	  }	  
+	  if(K==32)
+	  {
+	      /* space */
+	      fire();
+	  }
+	  if(K==192)
+	  {
+	      
+	  }
+      }
+
+
+      function reset()
+      {
+	  players[0].setAttribute("points","12,610 37,610, 37,660 12,660");
+	  
+	  players[0].setAttribute("heading","90");
+	  players[0].setAttribute("io","on");
+      }
+
+      function onload()
+      {
+	  //msg("onload");
+	  //objects=document.querySelectorAll('[construct="object"]');
+	  players=document.querySelectorAll('[construct="player"]');
+	  opponents=document.querySelectorAll('[construct="opponent"]');
+	  initOpponents();
+	  balls=document.querySelectorAll('[construct="ball"]');
+	  walls=document.querySelectorAll('[construct="wall"]');
+	  //anims=document.querySelectorAll('[construct="anim"]');
+	  players[0].setAttribute("style","fill:#0000FF");
+	  players[0].setAttribute("io","on");
+	  players[0].setAttribute("thrust","off");
+	  my_interval_timer=setInterval(update_positions,5);
+	  /*my_clock_timer=setInterval(update_clock,1000)*/
+	  /* get the time and set a variable equal to it */
+      }
+      
+      function initOpponents()
+      {
+
+	  /* goals are made up of tasks */
+	  
+	  /* set objectives */
+	  //pushGoal( opponents[0], "get_closest_red_ball" );	  
+	  //pushGoal( opponents[0], "goto_bottom_right" );
+	  pushGoal( opponents[0], "get_closest_blue_ball" );	  
+	  pushGoal( opponents[0], "goto_top" );
+	  setCurrentGoal( opponents[0], "get_closest_red_ball" );
+	  resetGoal( opponents[0] );
+	  //setCurrentGoal( opponents[1], "test" );
+	  //resetGoal( opponents[1] );
+	  
+      }
+
+      function getCurrentTask( elm )
+      {
+	  return elm.getAttribute( "currenttask" );
+      }
+
+      function setCurrentTask( elm, task )
+      {
+	  elm.setAttribute( "currenttask", task );
+	  return task;
+      }
+      
+      function getAllTasks( elm )
+      {
+	  return elm.getAttribute( "tasks" );
+      }
+      
+      function pushTask( elm, task )
+      {
+	  var old_task = elm.getAttribute( "tasks" );
+	  var new_tasks = task + "," + old_task;
+	  elm.setAttribute( "tasks", new_tasks );
+	  return 1;
+      }
+
+      function popTask( elm )
+      {
+	  var all_tasks=elm.getAttribute("tasks");
+	  var task=all_tasks.split(",");
+	  var replace="";
+	  var retVal = task[0];
+	  for( var i=1; i<task.length; i++ )
+	  {
+	      replace+=task[i];
+	      if( i < task.length-1 )
+		  replace+=',';
+	  }
+	  elm.setAttribute("tasks", replace );
+	  return retVal;
+      }
+
+      function getCurrentGoal( elm )
+      {
+	  return elm.getAttribute( "currentgoal" );
+	  
+      }
+
+      function setCurrentGoal( elm, goal )
+      {
+	  elm.setAttribute( "currentgoal", goal );
+	  return goal;
+	  
+      }
+      
+      function getAllGoals( elm )
+      {
+	  return elm.getAttribute( "goals" );
+      }
+      
+      function pushGoal( elm, goal )
+      {
+	  var old_goal = elm.getAttribute( "goals" );
+	  var new_goals = goal + "," + old_goal;
+	  elm.setAttribute( "goals", new_goals );
+	  return 1;
+      }
+
+      function resetGoal( elm )
+      {
+	  var g = getCurrentGoal( elm );
+	  elm.setAttribute( "tasks", "" );
+	  if( g == "get_closest_blue_ball" )
+	  {
+	      //elm.setAttribute( "tasks", "" );
+	      pushTask( elm, "goto" );	      
+	      pushTask( elm, "aim" );
+	      pushTask( elm, "locate_closest_blue_ball");
+	  }
+	  if( g == "get_closest_red_ball" )
+	  {
+	      //elm.setAttribute( "tasks", "" );
+
+	      pushTask( elm, "goto" );	      
+	      pushTask( elm, "aim" );
+	      pushTask( elm, "locate_closest_red_ball");
+	  }
+	  if( g == "goto_top" )
+	  {
+	      //elm.setAttribute( "tasks", "" );
+
+	      pushTask( elm, "aim" );
+	      pushTask( elm, "south" );
+	      pushTask( elm, "goto" );
+	      pushTask( elm, "aim" );
+	      pushTask( elm, "167 50" );
+	      pushTask( elm, "aimat" );
+	  }
+	  if( g == "goto_bottom_left" )
+	  {
+	      //elm.setAttribute( "tasks", "" );
+
+	      pushTask( elm, "goto" );
+	      pushTask( elm, "aim" );
+	      pushTask( elm, "50 618" );
+	      pushTask( elm, "aimat" );
+	  }
+	  if( g == "goto_bottom_right" )
+	  {
+	      //elm.setAttribute( "tasks", "" );
+	      
+	      pushTask( elm, "goto" );
+	      pushTask( elm, "aim" );
+	      pushTask( elm, "315 618" );
+	      pushTask( elm, "aimat" );
+	  }
+	  
+      }
+
+      function popGoal( elm )
+      {
+	  var all_goals=elm.getAttribute("goals");
+	  var goal=all_goals.split(",");
+	  var replace="";
+	  var retVal = goal[0];
+	  for( var i=1; i<goal.length; i++ )
+	  {
+	      replace+=goal[i];
+	      if( i < goal.length-1 )
+		  replace+=',';
+	  }
+	  elm.setAttribute("goals", replace );
+	  return retVal;
+      }
+
+
+      function getZone( x, y )
+      {
+	  if( x < 167 && y <= 172 ) return 1;
+	  if( x >= 167 && y <= 172 ) return 2;
+	  if( x < 167 && y <= 324 ) return 3;
+	  if( x >= 167 && y <= 324 ) return 4;
+	  if( x < 167 && y <= 496 ) return 5;
+	  if( x >= 167 && y <= 496 ) return 6;
+	  if( x < 167 && y <= 658 ) return 7;
+	  if( x >= 167 && y <= 658 ) return 8;
+	  return -1;
+      }
+      function think()
+      {
+	  for( var i=0; i<opponents.length; i++ )
+	  {
+	      var my_x = getElmX(opponents[i]);
+	      var my_y = getElmY(opponents[i]);
+	      if( getCurrentTask( opponents[i] ) == "" )
+	      {
+		  setCurrentTask( opponents[i], popTask( opponents[i] ) );
+	      }
+	      if( getCurrentTask( opponents[i] ) == "" )
+	      {
+		  return;
+	      }
+	      
+	      if( getCurrentTask( opponents[i] ) == "locate_closest_red_ball" )
+	      {
+		  var min_distance = 700;
+		  var distance;
+		  var closest_ball = balls.length-1;
+		  var closest_coords = "0 0";
+		  for( var j=0; j<balls.length; j++ )
+		  {
+		      var ball_x = getBallX(balls[j]);
+		      var ball_y = getBallY(balls[j]);
+		      
+		      distance = Math.sqrt( (ball_x-my_x)*(ball_x-my_x) + (ball_y-my_y)*(ball_y-my_y) );
+		      if( distance < min_distance && balls[j].getAttribute("fill") == "#FF0000" )
+		      {
+			  closest_ball=j;
+			  min_distance=distance;
+			  closest_coords=Math.round(ball_x)+" "+Math.round(ball_y);
+		      }
+
+		  }
+
+		  setLocation( opponents[i], closest_coords );
+		  oppLog( "<i>closest red ball: #" + closest_ball + " at " + closest_coords + "</i>");
+		  opponents[i].setAttribute("closest_red_ball", closest_ball );
+		  taskComplete(opponents[i]);
+	      }
+	      if( getCurrentTask( opponents[i] ) == "locate_closest_blue_ball" )
+	      {
+
+		  var min_distance = 700;
+		  var distance;
+		  var closest_ball = balls.length-1;
+		  var closest_coords = "0 0";
+
+		  for( var j=0; j<balls.length; j++ )
+		  {
+		      var ball_x = getBallX(balls[j]);
+		      var ball_y = getBallY(balls[j]);
+		      
+		      distance = Math.sqrt( (ball_x-my_x)*(ball_x-my_x) + (ball_y-my_y)*(ball_y-my_y) );
+		      if( distance < min_distance && balls[j].getAttribute("fill") == "#0000FF" )
+		      {
+			  closest_ball=j;
+			  min_distance=distance;
+			  closest_coords=Math.round(ball_x)+" "+Math.round(ball_y);
+		      }
+
+		  }
+
+		  /* for testing purposes */
+		  /* closest_ball = 13; */
+		  setLocation( opponents[i], closest_coords );
+		  oppLog( "<i>closest blue ball: #" + closest_ball + " at " + closest_coords + "</i>");
+		  opponents[i].setAttribute("closest_blue_ball", closest_ball );
+		  
+		  taskComplete(opponents[i]);
+	      }
+	      else if( getCurrentTask( opponents[i] ) == "pickup" )
+	      {
+
+
+	      }
+	      else if( getCurrentTask( opponents[i] ) == "west" )
+	      {
+
+		  oppLog( "aim at: "+ Number( my_x - 10 ) + " " + my_y );
+		  setLocation( opponents[i], Number( my_x - 10 ) + " " + my_y );
+		  opponents[i].setAttribute( "location", Number( my_x - 10 ) + " " + my_y );
+		  taskComplete(opponents[i]);
+
+	      }
+	      
+	      else if( getCurrentTask( opponents[i] ) == "east" )
+	      {
+
+		  oppLog( "aim at: "+ Number( my_x + 10 ) + " " + my_y );
+		  setLocation( opponents[i], Number( my_x + 10 ) + " " + my_y );
+		  opponents[i].setAttribute( "location", Number( my_x + 10 ) + " " + my_y );
+		  taskComplete(opponents[i]);
+
+	      }
+	      else if( getCurrentTask( opponents[i] ) == "north" )
+	      {
+		  oppLog( "aim at: "+ my_x + " " + Number(my_y - 10));
+		  setLocation( opponents[i], my_x + " " + Number( my_y - 10) );
+		  opponents[i].setAttribute( "location", my_x + " " + Number( my_y - 10) );
+		  taskComplete(opponents[i]);
+
+	      }
+	      else if( getCurrentTask( opponents[i] ) == "south" )
+	      {
+
+		  oppLog( "aim at: "+ my_x + " " + Number( my_y + 10 ) );
+		  setLocation( opponents[i], my_x + " " + Number(my_y + 10));
+		  opponents[i].setAttribute( "location", my_x + " " + Number(my_y+10) );
+		  taskComplete(opponents[i]);
+
+	      }	      
+	      else if( getCurrentTask( opponents[i] ) == "aimat" )
+	      {
+		  var coords=popTask( opponents[i] ); /* the coordinates are stored directly in the stack */
+		  oppLog( "aim at: " + coords );
+		  setLocation( opponents[i], coords );
+		  opponents[i].setAttribute( "location", coords );
+		  taskComplete(opponents[i]);
+		  
+	      }
+	      else if( getCurrentTask( opponents[i] ) == "aim" )
+	      {
+		  var coords=getLocation( opponents[i] ).split(" ");
+		  msg2( coords[0] + " " + coords[1] );
+		  if( coords == "" || coords==null)
+		  {
+		      oppLog( "<b>ERROR:</b> Must locate something first." );
+		      taskComplete(opponents[i]);
+		  }
+		  else
+		  {
+		      var aimat_x = Number(coords[0]);
+		      var aimat_y = Number(coords[1]);
+		      
+		      msg( "aiming at: " + aimat_x + " " + aimat_y );
+
+		      var my_heading = Math.round(opponents[i].getAttribute( "heading" ));
+		      
+		      var theta =  Math.round( -Math.atan2(-aimat_x + my_x, -aimat_y + my_y ) * 180 / Math.PI);
+		      theta = (theta+360) % 360;
+		      
+
+		      if( opponents[i].getAttribute( "whichway" ) == null || opponents[i].getAttribute( "whichway" ) == "" )
+		      {
+			  opponents[i].setAttribute("spindir",  whichWay( my_heading, my_x, aimat_x ) );
+			  opponents[i].setAttribute("whichway", whichWay( my_heading, my_x, aimat_x ) );
+		      }
+		      
+		      if( Math.abs( my_heading - theta ) < 1 )
+		      {
+			  opponents[i].setAttribute('spindir',"0");
+			  taskComplete(opponents[i]);
+			  opponents[i].setAttribute("whichway", "" );
+
+		      }
+		  }
+
+
+	      }
+	      else if( getCurrentTask( opponents[i] ) == "pick_up_red_ball" )
+	      {
+
+		  var b = opponents[i].getAttribute( "closest_red_ball" );
+		  if( b == "" )
+		  {
+		      oppLog( "<b>ERROR:</b> Must locate red ball first." );
+
+		      
+		      pushTask( opponents[i], "locate_closest_red_ball" );
+		      taskComplete(opponents[i]);
+		  }
+		  else
+		  {
+
+		      var ball_x = getBallX(balls[b]);
+		      var ball_y = getBallY(balls[b]);
+		      
+		      if( 1 )
+		      {
+			  /* not yet implemented */
+			  taskComplete(opponents[i]);
+			  
+		      }
+		  }
+
+		  
+	      }
+	      else if( getCurrentTask( opponents[i])  == "goto" )
+	      {
+		  var coords=getLocation( opponents[i] ).split(" ");
+		  if( coords == "" )
+		  {
+		      oppLog( "<b>ERROR:</b> Must have a location to go <b>to</b> first." );
+		      taskComplete(opponents[i]);
+		  }
+		  else
+		  {
+		  
+		      opponents[i].setAttribute('v', OPPONENT_SPEED );
+		      
+		      var goto_x = Number(coords[0]);
+		      var goto_y = Number(coords[1]);
+		      
+		      if( Math.sqrt( (my_x - goto_x)*(my_x - goto_x) + (my_y - goto_y)*(my_y - goto_y )) <= 4 )
+		      {
+			  opponents[i].setAttribute('v', 0 );
+			  taskComplete(opponents[i]);
+		      }
+		  }
+		  
+	      }
+	      else if( getCurrentTask( opponents[i] ) == "halt" ) 
+	      {
+		  opponents[i].setAttribute( "v", 0 );
+		  opponents[i].setAttribute( "spindir", 0 );
+
+	      }
+	      else if( getCurrentTask( opponents[i] ) == "avoid_stage_1spin" ) 
+	      {
+		  var s = opponents[i].getAttribute('spindir') ;
+		  opponents[i].setAttribute('spindir', -s );
+		  var v = opponents[i].getAttribute('v') ;
+		  opponents[i].setAttribute('v', -OPPONENT_SPEED );
+		  opponents[i].setAttribute('markerx', my_x );
+		  opponents[i].setAttribute('markery', my_y );
+		  taskComplete(opponents[i]);
+
+
+		  /* ================= */
+
+		  
+	      }
+	      else if( getCurrentTask( opponents[i] ) == "avoid_stage_1" ) 
+	      {
+		  var s = opponents[i].getAttribute('spindir') ;
+		  opponents[i].setAttribute('spindir', -s );
+		  var v = opponents[i].getAttribute('v') ;
+		  opponents[i].setAttribute('v', -v );
+
+		  opponents[i].setAttribute('spindir', 0 );
+		  opponents[i].setAttribute('markerx', my_x );
+		  opponents[i].setAttribute('markery', my_y );
+		  taskComplete(opponents[i]);
+
+		  
+		  
+	      }
+	      else if( getCurrentTask( opponents[i] ) == "avoid_stage_2" ) 
+	      {
+		  var old_x = opponents[i].getAttribute('markerx');
+		  var old_y = opponents[i].getAttribute('markery');
+		  var old_h = Math.round(opponents[i].getAttribute('heading'));
+		  
+		  if( Math.sqrt( (old_x-my_x)*(old_x-my_x) + (old_y-my_y)*(old_y-my_y) ) > ( 24 + Math.random()*10 )  )
+		  {
+		      opponents[i].setAttribute('v', 0 );
+		      opponents[i].setAttribute('markerx', my_x );
+		      opponents[i].setAttribute('markery', my_y );
+		      opponents[i].setAttribute('markerh', old_h );
+		      
+		      opponents[i].setAttribute('spindir', 1 -  Math.floor(Math.random() * 1)*2 );
+		      oppLog( "avoid_stage_2 completed" );
+		      taskComplete(opponents[i]);
+		  }
+
+
+
+	      }
+	      else if( getCurrentTask( opponents[i] ) == "avoid_stage_3" ) 
+	      {
+		  var old_h = opponents[i].getAttribute('markerh');
+		  var h = Math.round(opponents[i].getAttribute('heading'));
+		  
+		  
+		  if( Math.abs( h - old_h ) > (90 + Math.random()*10)  )//|| h == old_h -23 )
+		  {
+		      opponents[i].setAttribute('spindir', 0 );
+		      opponents[i].setAttribute('v', OPPONENT_SPEED );
+		      taskComplete(opponents[i]);
+
+		  }
+
+	      }
+	      else if( getCurrentTask( opponents[i] ) == "avoid_stage_4" ) 
+	      {
+		  var old_x = opponents[i].getAttribute('markerx');
+		  var old_y = opponents[i].getAttribute('markery');
+		  if( Math.sqrt( (old_x-my_x)*(old_x-my_x) + (old_y-my_y)*(old_y-my_y) ) > 24  )
+		  {
+		      resetGoal( opponents[i] );
+		      opponents[i].setAttribute('v', 0 );
+		      taskComplete(opponents[i]);
+		      opponents[i].setAttribute("whichway", "" );
+		  }
+	      }
+	      else
+	      {
+
+		  /* ? */
+	      }
+
+
+	      
+	      
+	  }
+
+      }
+
+      function update_clock()
+      {
+	  document.getElementById("htmlclock").innerHTML = "Clock: " + tick++;
+      }
+      
+      function getHeading(elm)
+      {
+	  return Number(elm.getAttribute("heading"));
+      }
+
+      function getVelocity(elm)
+      {
+	  return Number(elm.getAttribute("v"));
+      }
+      
+      function getBallX( elm )
+      {
+	  return( elm.getAttribute( "cx" ) );
+      }
+
+      function getBallY( elm )
+      {
+	  return( elm.getAttribute( "cy" ) );
+      }
+      
+      function getX()
+      {
+	  var all_four=players[0].getAttribute("points");
+	  var coords=all_four.split(" ");
+	  var A=coords[0].split(",");
+	  var C=coords[2].split(",");
+	  return ((Number(A[0])+Number(C[0]))/2);
+      }
+
+      function getY()
+      {
+	  var all_four=players[0].getAttribute("points");
+	  var coords=all_four.split(" ");
+	  var A=coords[0].split(",");
+	  var C=coords[2].split(",");
+	  return ((Number(A[1])+Number(C[1]))/2);
+      }
+      function getElmX(elm)
+      {
+	  var all_four=elm.getAttribute("points");
+	  var coords=all_four.split(" ");
+	  var A=coords[0].split(",");
+	  var C=coords[2].split(",");
+	  return ((Number(A[0])+Number(C[0]))/2);
+      }
+
+      function getElmY(elm)
+      {
+	  var all_four=elm.getAttribute("points");
+	  var coords=all_four.split(" ");
+	  var A=coords[0].split(",");
+	  var C=coords[2].split(",");
+	  return ((Number(A[1])+Number(C[1]))/2);
+      }
+
+
+      function move( elm )
+      {
+	  // if the object isn't supposed to be moving then don't let it move
+	  // by returning from this function
+	  if( elm.getAttribute('v') == '0' ) return 0;
+	  
+
+	  // get the objects' velocity and split it into vectors
+	  var v = Number(elm.getAttribute("v"));
+	  var h = Number(elm.getAttribute("heading"));
+
+	  h-=90;
+	  var c=Math.cos(2*Math.PI/180);
+	  
+	  var vy=-v*Math.sin(h*Math.PI/180)*(ROBOT_SPEED/10);
+	  var vx=v*Math.cos(h*Math.PI/180)*(ROBOT_SPEED/10);
+
+	  var all_four=elm.getAttribute("points");
+	  var coords=all_four.split(" ");
+	  var A=coords[0].split(",");
+	  var B=coords[1].split(",");
+	  var C=coords[2].split(",");
+	  var D=coords[3].split(",");
+	  
+	  var tmp=0;
+	  
+	  tmp=Number(A[0])+vx; A[0]=tmp;
+	  tmp=Number(A[1])-vy; A[1]=tmp;
+
+	  tmp=Number(B[0])+vx; B[0]=tmp;
+	  tmp=Number(B[1])-vy; B[1]=tmp;
+
+	  tmp=Number(C[0])+vx; C[0]=tmp;
+	  tmp=Number(C[1])-vy; C[1]=tmp;
+
+	  tmp=Number(D[0])+vx; D[0]=tmp;
+	  tmp=Number(D[1])-vy; D[1]=tmp;
+
+	  if( willCollideWithWall3( A[0], A[1], B[0], B[1] ) == 1) return -1;
+	  if( willCollideWithWall3( C[0], C[1], B[0], B[1] ) == 1) return -1;
+	  if( willCollideWithWall3( C[0], C[1], D[0], D[1] ) == 1) return -1;
+	  if( willCollideWithWall3( A[0], A[1], D[0], D[1] ) == 1) return -1;
+
+	  msg2("<pre>x: " + Math.round(Number(A[0]+C[0])/2) + "<br>y: " + Math.round(Number(A[1]+C[1])/2)+"</pre>");
+
+	  elm.setAttribute("points",A[0]+","+A[1]+" "+B[0]+","+B[1]+" "+C[0]+","+C[1]+" "+D[0]+","+D[1]);
+	  return 0;
+      }
+
+
+
+      
+      function update_positions()
+      {
+	  spin(players[0]);
+	  for( var i=0; i<opponents.length; i++ )
+	  {
+	      if( spin(opponents[i]) == -1 )
+	      {
+		  resetGoal( opponents[i] );
+		  pushTask( opponents[i], "avoid_stage_4" );
+		  pushTask( opponents[i], "avoid_stage_3" );
+		  pushTask( opponents[i], "avoid_stage_2" );
+		  setCurrentTask( opponents[i], "avoid_stage_1spin" );	      
+	      }
+	      
+	      //thrust(objects[0]);
+	      //gravity(objects[0]);
+	      think();
+	      if( move(opponents[i]) == -1)
+	      {
+		  resetGoal( opponents[i] );
+		  pushTask( opponents[i], "avoid_stage_4" );
+		  pushTask( opponents[i], "avoid_stage_3" );
+		  pushTask( opponents[i], "avoid_stage_2" );
+		  setCurrentTask( opponents[i], "avoid_stage_1" );	      
+	      }
+	  }
+	  move(players[0]);
+      }
+
+      function isBetween( x1, x2, x3 )
+      {
+	  if(   ( (x1<=x2) && (x1>=x3 ) ) ||
+		( (x1>=x2) && (x1<=x3 ) ) )
+	      return 1;
+	  return 0;
+      }
+
+      /* smaller -> bigger */
+      function isBallTouchingPlayer(b, p)
+      {
+	  /* is balls[b] touching player[p] */
+	  var ball_x = getBallX(balls[b]);
+	  var ball_y = getBallY(balls[b]);
+	  var all_four=p.getAttribute("points");
+	  var coords=all_four.split(" ");
+	  var A=coords[0].split(",");
+	  var B=coords[1].split(",");
+	  var C=coords[2].split(",");
+	  var D=coords[3].split(",");
+	  
+
+      }
+      function willCollideWithWall3(x1, y1, x2, y2)
+      {
+	  for(var i=0;i<walls.length;i++)
+	  {
+	      var x3= Number(walls[i].getAttribute('x1')); // argument 4
+	      var y3= Number(walls[i].getAttribute('y1')); // 5
+	      var x4= Number(walls[i].getAttribute('x2')); // 6
+	      var y4= Number(walls[i].getAttribute('y2')); // 7
+
+	      var ua = 0;
+	      var ub = 0;
+	      var ud = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+	      
+	      
+	      if (ud != 0) {
+		  ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / ud;
+		  ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / ud;
+		  if (ua < 0 || ua > 1 || ub < 0 || ub > 1) ua = 0;
+	      }
+
+	      if( ua > 0 )
+	      {
+		  return 1;
+	      }
+
+	  }
+	  return 0;
+      }
+      
+      
+      function spin(elm)
+      {	  
+	  var d = Number(elm.getAttribute("spindir"));
+	  if( Math.abs(d) != 1 ) return 0; // if the spin direction of the object is 0 then no spin
+	  
+	  var all_four=elm.getAttribute("points");
+	  var coords=all_four.split(" ");
+	  var A=coords[0].split(",");
+	  var B=coords[1].split(",");
+	  var C=coords[2].split(",");
+	  var D=coords[3].split(",");
+
+	  var centroidx=(Number(A[0])+Number(C[0]))/2;
+	  var centroidy=(Number(A[1])+Number(C[1]))/2;
+	  
+	  var s=Math.sin(0.5*d*Math.PI/180);
+	  var c=Math.cos(0.5*d*Math.PI/180);
+
+	  A[0]-=centroidx;
+	  A[1]-=centroidy;
+	  var Ata =(Number(c*A[0])-Number(s*A[1]));
+	  var Atb =(Number(s*A[0])+Number(c*A[1]));
+	  A[0] = Ata+centroidx;
+	  A[1] = Atb+centroidy;
+	  
+	  B[0]-=centroidx;
+	  B[1]-=centroidy;
+	  var Bta=(Number(c*B[0])-Number(s*B[1]));
+	  var Btb=(Number(s*B[0])+Number(c*B[1]));
+	  B[0]=Bta+centroidx;
+	  B[1]=Btb+centroidy;
+	  
+	  C[0]-=centroidx;
+	  C[1]-=centroidy;
+	  var Cta=(Number(c*C[0])-Number(s*C[1]));
+	  var Ctb=(Number(s*C[0])+Number(c*C[1]));
+	  C[0]=Cta+centroidx;
+	  C[1]=Ctb+centroidy;
+
+	  D[0]-=centroidx;
+	  D[1]-=centroidy;
+	  var Dta=(Number(c*D[0])-Number(s*D[1]));
+	  var Dtb=(Number(s*D[0])+Number(c*D[1]));
+	  D[0]=Dta+centroidx;
+	  D[1]=Dtb+centroidy;
+
+	  if( willCollideWithWall3( A[0], A[1], B[0], B[1] ) == 1) return -1;
+	  if( willCollideWithWall3( C[0], C[1], B[0], B[1] ) == 1) return -1;
+	  if( willCollideWithWall3( C[0], C[1], D[0], D[1] ) == 1) return -1;
+	  if( willCollideWithWall3( A[0], A[1], D[0], D[1] ) == 1) return -1;
+
+	  elm.setAttribute("points",A[0]+","+A[1]+" "+B[0]+","+B[1]+" "+C[0]+","+C[1]+" "+D[0]+","+D[1]);
+
+	  var new_heading=Math.atan( (B[0]-C[0])/(B[1]-C[1]) ) * (-180)/Math.PI;
+
+	  if( A[0] >= D[0] && A[1] >= D[1] ) new_heading+=180;
+	  else if( A[0] < D[0] && A[1] > D[1] ) new_heading+=180;
+	  else if( A[0] < D[0] && A[1] < D[1] ) new_heading+=360;
+	  elm.setAttribute("heading",new_heading );
+	  if( elm.getAttribute( "construct" ) == "player" )
+	  {
+	      plaLog( new_heading );
+	  }
+	  return 0;
+      }
+
+
+      function ballCollision(elm1, elm2)
+      {
+	  var ball_x = getBallX( elm1 );
+	  var ball_y = getBallY( elm1 );
+	  
+      }
+
+
+      </script>
+  </head>
+  <body onload="onload();">
+    <center>
+
+      <svg width="340" height="670" viewBox="0 0 340 670">
+	<!--<Svg width="1240px" height="1240px" version="1.1">
+	    <defs>
+	    </defs>-->
+	    
+	    <!-- Arena Border Walls -->
+	    <line construct="wall" id="west-wall" x1="10" y1="10" x2="10" y2="658" stroke-width="2" stroke="#000000"/>
+	    <line construct="wall" id="north-wall" x1="10" y1="10" x2="334" y2="10" stroke-width="2" stroke="#000000"/>
+	    <line construct="wall" id="east-wall" x1="334" y1="10" x2="334" y2="658" stroke-width="2" stroke="#000000"/>
+	    <line construct="wall" id="south-wall" x1="10" y1="658" x2="334" y2="658" stroke-width="2" stroke="#000000"/>
+
+	    <!-- Terminal Areas -->
+	    <line construct="wall" id="red-terminal-wall" x1="10" y1="75" x2="75" y2="10" stroke-width="2" stroke="#000000"/>
+	    <line construct="wall" id="blue-terminal-wall" x1="334" y1="598" x2="269" y2="658" stroke-width="2" stroke="#000000"/>
+
+	    <!-- Hanger Zones (Pillars) -->
+	    <!-- Hanger 1 (Red) -->
+	    <line construct="wall" id="red-pillarA1-wall" x1="324" y1="10" x2="324" y2="20" stroke-width="2" stroke="#FF0000"/>
+	    <line construct="wall" id="red-pillarA2-wall" x1="324" y1="20" x2="334" y2="20" stroke-width="2" stroke="#FF0000"/>
+	    
+	    <line construct="wall" id="red-pillarB1-wall" x1="334" y1="139" x2="324" y2="139" stroke-width="2" stroke="#FF0000"/>
+	    <line construct="wall" id="red-pillarB2-wall" x1="324" y1="139" x2="324" y2="129" stroke-width="2" stroke="#FF0000"/>
+	    <line construct="wall" id="red-pillarB3-wall" x1="334" y1="129" x2="324" y2="129" stroke-width="2" stroke="#FF0000"/>
+
+	    <line construct="wall" id="red-pillarC1-wall" x1="218" y1="20" x2="228" y2="20" stroke-width="2" stroke="#FF0000"/>
+	    <line construct="wall" id="red-pillarC2-wall" x1="228" y1="20" x2="228" y2="10" stroke-width="2" stroke="#FF0000"/>
+	    <line construct="wall" id="red-pillarC2-wall" x1="218" y1="20" x2="218" y2="10" stroke-width="2" stroke="#FF0000"/>
+
+	    <line construct="wall" id="red-pillarC1-wall" x1="218" y1="129" x2="228" y2="129" stroke-width="2" stroke="#FF0000"/>
+	    <line construct="wall" id="red-pillarC1-wall" x1="228" y1="129" x2="228" y2="139" stroke-width="2" stroke="#FF0000"/>
+	    <line construct="wall" id="red-pillarC1-wall" x1="228" y1="139" x2="218" y2="139" stroke-width="2" stroke="#FF0000"/>
+	    <line construct="wall" id="red-pillarC1-wall" x1="218" y1="129" x2="218" y2="139" stroke-width="2" stroke="#FF0000"/>
+	    <!-- Hanger 2 (Blue) -->
+	    <line construct="wall" id="blue-pillarA1-wall" x1="10" y1="648" x2="20" y2="648" stroke-width="2" stroke="#0000FF"/>
+	    <line construct="wall" id="blue-pillarA2-wall" x1="20" y1="648" x2="20" y2="658" stroke-width="2" stroke="#0000FF"/>
+
+	    <line construct="wall" id="blue-pillarB1-wall" x1="126" y1="648" x2="126" y2="658" stroke-width="2" stroke="#0000FF"/>
+	    <line construct="wall" id="blue-pillarB2-wall" x1="126" y1="648" x2="116" y2="648" stroke-width="2" stroke="#0000FF"/>
+	    <line construct="wall" id="blue-pillarB2-wall" x1="116" y1="648" x2="116" y2="658" stroke-width="2" stroke="#0000FF"/>
+	    
+	    <line construct="wall" id="blue-pillarC1-wall" x1="126" y1="519" x2="126" y2="529" stroke-width="2" stroke="#0000FF"/>
+	    <line construct="wall" id="blue-pillarC2-wall" x1="126" y1="529" x2="116" y2="529" stroke-width="2" stroke="#0000FF"/>
+	    <line construct="wall" id="blue-pillarC3-wall" x1="116" y1="529" x2="116" y2="519" stroke-width="2" stroke="#0000FF"/>
+	    <line construct="wall" id="blue-pillarC4-wall" x1="116" y1="519" x2="126" y2="519" stroke-width="2" stroke="#0000FF"/>
+
+	    <line construct="wall" id="blue-pillarD1-wall" x1="10" y1="519" x2="20" y2="519" stroke-width="2" stroke="#0000FF"/>
+	    <line construct="wall" id="blue-pillarD2-wall" x1="20" y1="519" x2="20" y2="529" stroke-width="2" stroke="#0000FF"/>
+	    <line construct="wall" id="blue-pillarD3-wall" x1="20" y1="529" x2="10" y2="529" stroke-width="2" stroke="#0000FF"/>
+
+
+	    <!-- Midfield Line -->
+	    <line construct="tape" id="half-court" x1="334" y1="263" x2="10" y2="405" stroke-width="3" stroke="#CCCCCC"/>
+
+	    <!-- HUB -->
+	    <!--<line construct="wall" id="hub-wall" x1="101" y1="361" x2="199" y2="405" stroke-width="2" stroke="#0000FF"/>
+		<line construct="wall" id="hub-wall" x1="101" y1="361" x2="145" y2="263" stroke-width="2" stroke="#0000FF"/>
+		<line construct="wall" id="hub-wall" x1="243" y1="307" x2="145" y2="263" stroke-width="2" stroke="#0000FF"/>	    
+		<line construct="wall" id="hub-wall" x1="243" y1="307" x2="199" y2="405" stroke-width="2" stroke="#0000FF"/>-->
+		
+		<line construct="wall" id="hub-wall" x1="184" y1="364" x2="202" y2="322" stroke-width="2" stroke="#0000FF"/>
+		<line construct="wall" id="hub-wall" x1="202" y1="322" x2="160" y2="304" stroke-width="2" stroke="#0000FF"/>
+		<line construct="wall" id="hub-wall" x1="160" y1="304" x2="142" y2="346" stroke-width="2" stroke="#0000FF"/>	    
+		<line construct="wall" id="hub-wall" x1="142" y1="346" x2="184" y2="364" stroke-width="2" stroke="#0000FF"/>
+
+
+		<!-- Lower Left of Hub -->
+		<line construct="wall" id="hub-wall" x1="133" y1="341" x2="139" y2="355" stroke-width="2" stroke="#0000FF"/>
+		<line construct="wall" id="hub-wall" x1="133" y1="341" x2="146" y2="336" stroke-width="2" stroke="#0000FF"/>	    
+		<line construct="wall" id="hub-wall" x1="139" y1="355" x2="151" y2="350" stroke-width="2" stroke="#0000FF"/>
+
+		<!-- Lower Right of Hub -->
+		<line construct="wall" id="hub-wall" x1="179" y1="373" x2="193" y2="367" stroke-width="2" stroke="#0000FF"/>
+		<line construct="wall" id="hub-wall" x1="179" y1="373" x2="174" y2="360" stroke-width="2" stroke="#0000FF"/>
+		<line construct="wall" id="hub-wall" x1="193" y1="367" x2="188" y2="355" stroke-width="2" stroke="#0000FF"/>
+
+		<!-- Upper Right of Hub -->
+		<line construct="wall" id="hub-wall" x1="211" y1="327" x2="205" y2="313" stroke-width="2" stroke="#0000FF"/>
+		<line construct="wall" id="hub-wall" x1="211" y1="327" x2="198" y2="332" stroke-width="2" stroke="#0000FF"/>
+		<line construct="wall" id="hub-wall" x1="205" y1="313" x2="193" y2="318" stroke-width="2" stroke="#0000FF"/>
+
+		<!-- Upper Left of Hub -->
+		<line construct="wall" id="hub-wall" x1="165" y1="295" x2="170" y2="308" stroke-width="2" stroke="#0000FF"/>
+		<line construct="wall" id="hub-wall" x1="165" y1="295" x2="151" y2="301" stroke-width="2" stroke="#0000FF"/>
+		<line construct="wall" id="hub-wall" x1="156" y1="313" x2="151" y2="301" stroke-width="2" stroke="#0000FF"/>
+
+		
+		
+		<!--<line construct="wall" id="hub-wall" x1="146" y1="336" x2="151" y2="350" stroke-width="2" stroke="#0000FF"/>-->
+		<!--<line construct="wall" id="hub-wall" x1="151" y1="350" x2="133" y2="341" stroke-width="2" stroke="#0000FF"/>-->
+		
+		<!--<line construct="wall" id="hub-wall" x1="139" y1="355" x2="146" y2="336" stroke-width="2" stroke="#0000FF"/>-->
+		
+		<!--- Reference Point -->
+		<!-- 107" square rotated 24 deg in the center of arena -->
+		<!--<rect x="119" y="281" width="107" height="107" style="fill:#EEEEEE" transform="rotate(24,172,334)"/>-->
+		<!--<circle construct="object" id="object0" cx="172" cy="334" r="3" style="fill:#00FF00"/>-->
+
+
+		<!-- Points at vertices of lower left of hub -->
+		<!--<circle construct="object" id="object0" cx="146" cy="336" r="3" style="fill:#FF0000"/>
+		    <circle construct="object" id="object0" cx="151" cy="350" r="3" style="fill:#FF0000"/>
+		    <circle construct="object" id="object0" cx="133" cy="341" r="3" style="fill:#FF0000"/>
+		    <circle construct="object" id="object0" cx="139" cy="355" r="3" style="fill:#FF0000"/>-->
+
+		    <!-- Octagon -->
+		    <line construct="tape" id="hub-wall" x1="216" y1="236" x2="271" y2="296" stroke-width="4" stroke="#FF0000"/>
+		    <line construct="tape" id="hub-wall" x1="134" y1="234" x2="215" y2="237" stroke-width="4" stroke="#FF0000"/>
+		    <line construct="tape" id="hub-wall" x1="74" y1="290" x2="134" y2="235" stroke-width="4" stroke="#FF0000"/>
+		    <line construct="tape" id="hub-wall" x1="72" y1="372" x2="75" y2="291" stroke-width="4" stroke="#FF0000"/>
+		    <line construct="tape" id="hub-wall" x1="128" y1="432" x2="73" y2="372" stroke-width="4" stroke="#0000FF"/>
+		    <line construct="tape" id="hub-wall" x1="210" y1="434" x2="129" y2="431" stroke-width="4" stroke="#0000FF"/>
+		    <line construct="tape" id="hub-wall" x1="270" y1="378" x2="210" y2="433" stroke-width="4" stroke="#0000FF"/>
+		    <line construct="tape" id="hub-wall" x1="272" y1="296" x2="269" y2="377" stroke-width="4" stroke="#0000FF"/>
+
+		    <!-- Balls Starting with topmost on ring and going counter clockwise -->
+		    
+		    <circle construct="ball" cx="138" cy="185" r="4.25" fill="#0000FF"/>
+		    <circle construct="ball" cx="83" cy="209" r="4.25" fill="#FF0000"/>
+		    <circle construct="ball" cx="21" cy="309" r="4.25" fill="#FF0000"/>
+		    <circle construct="ball" cx="23" cy="368" r="4.25" fill="#0000FF"/>
+		    <circle construct="ball" cx="47" cy="423" r="4.25" fill="#FF0000"/>
+		    <circle construct="ball" cx="91" cy="464" r="4.25" fill="#0000FF"/>
+		    <circle construct="ball" cx="206" cy="483" r="4.25" fill="#FF0000"/>
+		    <circle construct="ball" cx="261" cy="459" r="4.25" fill="#0000FF"/>
+		    <circle construct="ball" cx="323" cy="359" r="4.25" fill="#0000FF"/>
+		    <circle construct="ball" cx="321" cy="300" r="4.25" fill="#FF0000"/>
+		    <circle construct="ball" cx="297" cy="245" r="4.25" fill="#0000FF"/>
+		    <circle construct="ball" cx="253" cy="204" r="4.25" fill="#FF0000"/>
+
+		    <!-- Terminal Balls -->
+		    <circle construct="ball" cx="46" cy="46" r="4.25" fill="#FF0000"/>
+		    <circle construct="ball" cx="298" cy="624.5" r="4.25" fill="#0000FF"/>
+
+		    <!--<polygon location="" currentgoal="" currenttask="" io="on" v="0" heading="0" id="opponent1" construct="opponent" points="180,570 210,570 210,600 180,600" spindir="0" style="fill:#FF9900" whichway=""/>-->
+		    <polygon location="" currentgoal="" currenttask="" io="on" v="0" heading="0" id="opponent2" construct="opponent" points="180,220 210,220 210,250 180,250" spindir="0" style="fill:#FFAA00" whichway=""/>
+		    
+		    <polygon io="on" v="0" heading="0" id="object1" construct="player" points="144,380 174,380 174,410 144,410" spindir="0" style="fill:#0099FF"/>
+
+	</svg>
+	<p id="htmlclock">TIME: 3:00</p>
+	<p id="messages"></p>
+	<p id="coll"></p>
+	<p id="opplog"></p>
+	<p id="plalog"></p>
+	<p>Arrow Keys to Move.</p>
+    </center>
+</html>
+

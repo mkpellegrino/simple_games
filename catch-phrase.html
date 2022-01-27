@@ -1,0 +1,138 @@
+<html>
+  <head>
+    <script language="javascript">
+      function onload()
+      {
+	  document.getElementById("label").textContent = 'Disc Label';
+	  document.getElementById("termslist").textContent = "List 72 Terms" + '\n' + "Here." + '\n' + "One per line";
+      }
+
+      function parseText()
+      {
+	  var textArea = document.getElementById("termslist");
+	  var lines = textArea.value.split("\n");
+	  document.getElementById("label").textContent = document.getElementById("disclabel").value;
+	  for(var i = 0;i < 72;i++)
+	  {
+	      var ident="term"+(i+1);
+	      if( i > lines.length )
+	      {
+		  document.getElementById(ident).textContent = "";
+	      }
+	      else
+	      {
+		  document.getElementById(ident).textContent = lines[i];
+	      }
+	  }
+
+      }
+    </script>
+  </head>
+  
+  <body onload="onload();">
+    <center>
+      <!-- SVG IMAGE -->
+      <svg width="512px" height="512px" version="1.1">
+	<defs><path d="M128,256a128,128 0 1,0 256,0a128,128 0 1,0 -256,0" id="textcircle" transform="rotate(-75 256 256)"/></defs>
+	<text id="term1" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(6)">Term 1</text>
+	<text id="term2" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(11)">Term 2</text>
+	<text id="term3" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(16)">Term 3</text>
+	<text id="term4" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(21)">Term 4</text>
+	<text id="term5" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(26)">Term 5</text>
+	<text id="term6" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(31)">Term 6</text>
+	<text id="term7" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(36)">Term 7</text>
+	<text id="term8" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(41)">Term 8</text>
+	<text id="term9" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(46)">Term 9</text>
+	<text id="term10" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(51)">Term 10</text>
+	<text id="term11" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(56)">Term 11</text>
+	<text id="term12" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(61)">Term 12</text>
+	<text id="term13" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(66)">Term 13</text>
+	<text id="term14" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(71)">Term 14</text>
+	<text id="term15" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(76)">Term 15</text>
+	<text id="term16" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(81)">Term 16</text>
+	<text id="term17" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(86)">Term 17</text>
+	<text id="term18" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(91)">Term 18</text>
+	<text id="term19" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(96)">Term 19</text>
+	<text id="term20" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(101)">Term 20</text>
+	<text id="term21" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(106)">Term 21</text>
+	<text id="term22" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(111)">Term 22</text>
+	<text id="term23" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(116)">Term 23</text>
+	<text id="term24" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(121)">Term 24</text>
+	<text id="term25" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(126)">Term 25</text>
+	<text id="term26" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(131)">Term 26</text>
+	<text id="term27" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(136)">Term 27</text>
+	<text id="term28" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(141)">Term 28</text>
+	<text id="term29" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(146)">Term 29</text>
+	<text id="term30" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(151)">Term 30</text>
+	<text id="term31" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(156)">Term 31</text>
+	<text id="term32" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(161)">Term 32</text>
+	<text id="term33" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(166)">Term 33</text>
+	<text id="term34" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(171)">Term 34</text>
+	<text id="term35" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(176)">Term 35</text>
+	<text id="term36" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(181)">Term 36</text>
+	<text id="term37" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(186)">Term 37</text>
+	<text id="term38" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(191)">Term 38</text>
+	<text id="term39" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(196)">Term 39</text>
+	<text id="term40" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(201)">Term 40</text>
+	<text id="term41" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(206)">Term 41</text>
+	<text id="term42" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(211)">Term 42</text>
+	<text id="term43" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(216)">Term 43</text>
+	<text id="term44" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(221)">Term 44</text>
+	<text id="term45" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(226)">Term 45</text>
+	<text id="term46" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(231)">Term 46</text>
+	<text id="term47" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(236)">Term 47</text>
+	<text id="term48" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(241)">Term 48</text>
+	<text id="term49" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(246)">Term 49</text>
+	<text id="term50" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(251)">Term 50</text>
+	<text id="term51" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(256)">Term 51</text>
+	<text id="term52" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(261)">Term 52</text>
+	<text id="term53" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(266)">Term 53</text>
+	<text id="term54" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(271)">Term 54</text>
+	<text id="term55" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(276)">Term 55</text>
+	<text id="term56" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(281)">Term 56</text>
+	<text id="term57" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(286)">Term 57</text>
+	<text id="term58" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(291)">Term 58</text>
+	<text id="term59" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(296)">Term 59</text>
+	<text id="term60" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(301)">Term 60</text>
+	<text id="term61" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(306)">Term 61</text>
+	<text id="term62" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(311)">Term 62</text>
+	<text id="term63" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(316)">Term 63</text>
+	<text id="term64" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(321)">Term 64</text>
+	<text id="term65" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(326)">Term 65</text>
+	<text id="term66" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(331)">Term 66</text>
+	<text id="term67" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(336)">Term 67</text>
+	<text id="term68" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(341)">Term 68</text>
+	<text id="term69" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(346)">Term 69</text>
+	<text id="term70" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(351)">Term 70</text>
+	<text id="term71" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(356)">Term 71</text>
+	<text id="term72" font-size="0.75em" x="160" y="0" text-anchor="middle" transform="translate(256,256) rotate(361)">Term 72</text>
+
+
+	<!--Disc Label-->
+	<text id="label" font-size="1.5em" x="256" y="335" text-anchor="middle">Disc Label</text>
+	
+	<!--Circumference-->
+	<circle cx="256" cy="256" r="235" stroke="black" fill="none" stroke-width="1"/>
+
+	<!--Middle Circle-->
+	<circle cx="256" cy="256" r="44" stroke="black" fill="black" stroke-width="1"/>
+
+	<!--Holes to punch-->
+	<circle cx="215" cy="0" r="10" stroke="black" fill="black" stroke-width="1" transform="translate(256,256) rotate(120)"/>
+	<circle cx="215" cy="0" r="10" stroke="black" fill="black" stroke-width="1" transform="translate(256,256) rotate(240)"/>
+	<circle cx="215" cy="0" r="10" stroke="black" fill="black" stroke-width="1" transform="translate(256,256) rotate(0)"/>
+
+
+	<text dy="100" textLength="100" stroke="#EFEFEF">
+        <textPath xlink:href="#textcircle">Catch Phrase Creator - Michael K.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Pellegrino - 2021</textPath>
+	</text>
+      </svg>
+      <hr>
+      <form name='form1' action='' method='GET'>
+	<input type='button' onClick='javascript:parseText()' value='Create Disc'></br>
+	<textarea id='disclabel' name='disclabel' rows=1 cols=36>Disc Label Here</textarea><br>
+	<textarea id='termslist' name='termslist' rows=10 cols=36>List 72 Vocab Terms HereOne per line</textarea>
+      </form>
+    </center>
+  </body>
+</html>

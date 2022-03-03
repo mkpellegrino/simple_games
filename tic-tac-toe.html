@@ -1,0 +1,188 @@
+<html>
+  <head>
+    <title>Tic-tac-toe - Michal K. Pellegrino</title>
+  </head>
+  <script language="javascript">
+
+    var squares=[];
+    var whosTurn="X";
+    var removeables=[];
+    
+    function setXY( i, x, y )
+    {
+	squares[i].setAttribute( "x", x );
+	squares[i].setAttribute( "y", y );
+	return;
+    }
+
+    function onload()
+    {
+	whosTurn="X";
+	squares=document.querySelectorAll("[id='square']");
+	removeables=document.querySelectorAll("[removeable='yes']");
+	var k=0;
+	for( var i=0; i<3; i++ )
+	{
+	    for( var j=0; j<3; j++ )
+	    {
+		setXY( k++, j*40 + 2, i*40 + 2);
+	    }
+	}
+
+	/* remove all of the X's and O's that may */
+	/* have been placed in a prvious game */
+	for( var i=0; i<removeables.length; i++ )
+	{
+	    removeables[i].remove();
+	}
+	/* reset the board */
+	for( var i=0; i<squares.length; i++ )
+	{
+	    squares[i].setAttribute("occupied","" );
+	}
+
+	return;
+    }
+
+    function checkForWinner()
+    {
+	/* check rows */
+	for( var i=0; i<9; i+=3 )
+	{
+	    if( squares[i].getAttribute("occupied") == "X" && squares[i+1].getAttribute("occupied") == "X" && squares[i+2].getAttribute("occupied") == "X" )
+	    {
+		return "X";
+	    }
+	    if( squares[i].getAttribute("occupied") == "O" && squares[i+1].getAttribute("occupied") == "O" && squares[i+2].getAttribute("occupied") == "O" )
+	    {
+		return "O";
+	    }
+	}
+
+	/* check columns */
+	for( var i=0; i<3; i++ )
+	{
+	    if( squares[i].getAttribute("occupied") == "O" && squares[i+3].getAttribute("occupied") == "O" && squares[i+6].getAttribute("occupied") == "O" )
+	    {
+		return "O";
+	    }
+	    if( squares[i].getAttribute("occupied") == "X" && squares[i+3].getAttribute("occupied") == "X" && squares[i+6].getAttribute("occupied") == "X" )
+	    {
+		return "X";
+	    }
+	}
+	
+	/* check diagonals */
+	if( squares[0].getAttribute("occupied") == "O" && squares[4].getAttribute("occupied") == "O" && squares[8].getAttribute("occupied") == "O" )
+	{
+	    return "O";
+	}
+	if( squares[0].getAttribute("occupied") == "X" && squares[4].getAttribute("occupied") == "X" && squares[8].getAttribute("occupied") == "X" )
+	{
+	    return "X";
+	}
+	if( squares[2].getAttribute("occupied") == "O" && squares[4].getAttribute("occupied") == "O" && squares[6].getAttribute("occupied") == "O" )
+	{
+	    return "O";
+	}
+	if( squares[2].getAttribute("occupied") == "X" && squares[4].getAttribute("occupied") == "X" && squares[6].getAttribute("occupied") == "X" )
+	{
+	    return "X";
+	}
+	/* check for tie */
+	var t=0;
+	for( var i=0; i<9; i++ )
+	{
+	    if( squares[i].getAttribute("occupied") != "" ) t++;
+	}
+	if( t == 9 ) return "T";
+	return;
+	
+    }
+
+    function change( i )
+    {
+	//squares[i].setAttribute( "fill", "red" );
+	if( (squares[i].getAttribute( "occupied" ) == "X" ) || (squares[i].getAttribute( "occupied" ) == "O" ) ) return -1;
+	squares[i].setAttribute( "occupied", whosTurn );
+	var startX = squares[i].getAttribute( "x" );
+	var startY = squares[i].getAttribute( "y" );
+	
+	if( whosTurn=="X" )
+	{	    
+	    /* draw an X */
+	    const svg = document.querySelector('svg');  
+	    const newElement = document.createElementNS("http://www.w3.org/2000/svg", 'line');  
+	    newElement.setAttribute("removeable", "yes" );
+	    newElement.setAttribute("x1", Number(startX)+5);   
+	    newElement.setAttribute("y1", Number(startY)+5);
+	    newElement.setAttribute("x2", Number(startX)+25);
+	    newElement.setAttribute("y2", Number(startY)+25);   
+	    newElement.style.stroke = "#000";
+	    newElement.style.strokeWidth = "3px";  
+	    svg.appendChild(newElement);
+
+	    const newElement2 = document.createElementNS("http://www.w3.org/2000/svg", 'line');
+	    newElement2.setAttribute("removeable", "yes" );
+	    newElement2.setAttribute("x1", Number(startX)+25);   
+	    newElement2.setAttribute("y1", Number(startY)+5);
+	    newElement2.setAttribute("x2", Number(startX)+5);
+	    newElement2.setAttribute("y2", Number(startY)+25);   
+	    newElement2.style.stroke = "#000";
+	    newElement2.style.strokeWidth = "3px";  
+	    svg.appendChild(newElement2);
+	    whosTurn="O";
+	}
+	else
+	{
+	    /* draw an O */
+	    const svg = document.querySelector('svg');  
+	    const newElement = document.createElementNS("http://www.w3.org/2000/svg", 'circle');
+	    newElement.setAttribute("removeable", "yes" );
+	    newElement.setAttribute("cx", Number(startX)+15);   
+	    newElement.setAttribute("cy", Number(startY)+15);
+	    newElement.setAttribute("r", 10);
+	    newElement.setAttribute("fill", "none");
+	    newElement.style.stroke = "#000";
+	    newElement.style.strokeWidth = "3px";  
+	    svg.appendChild(newElement);
+	    
+	    whosTurn="X";
+	}
+
+	if( checkForWinner() == "X" || checkForWinner() == "O" )
+	{
+	    alert( "Winner is: " + checkForWinner() );
+	    onload();
+	}
+	else if( checkForWinner() == "T" )
+	{
+	    alert( "Alas... the game has ended in a draw." );
+	    onload();
+	}
+	return;
+    }
+    
+
+  </script>
+  
+  <body onload="javascript:onload();">
+    <center>
+      <p>A simple tic-tac-toe game written in Javascript using SVG elements.</p>
+      <p>(C) 2022 - Michael K. Pellegrino</p>
+    <svg width="116" height="116">
+
+      <rect id="square" x="0" y="0" height="30" width="30" fill="white" stroke="black" stroke-width="3" onclick="change(0);"/>
+      <rect id="square" x="0" y="0" height="30" width="30" fill="white" stroke="black" stroke-width="3" onclick="change(1);"/>
+      <rect id="square" x="0" y="0" height="30" width="30" fill="white" stroke="black" stroke-width="3" onclick="change(2);"/>
+      <rect id="square" x="0" y="0" height="30" width="30" fill="white" stroke="black" stroke-width="3" onclick="change(3);"/>
+      <rect id="square" x="0"  y="0" height="30" width="30" fill="white" stroke="black" stroke-width="3" onclick="change(4);"/>
+      <rect id="square" x="0" y="0" height="30" width="30" fill="white" stroke="black" stroke-width="3" onclick="change(5);"/>
+      <rect id="square" x="0" y="0" height="30" width="30" fill="white" stroke="black" stroke-width="3" onclick="change(6);"/>
+      <rect id="square" x="0" y="0" height="30" width="30" fill="white" stroke="black" stroke-width="3" onclick="change(7);"/>
+      <rect id="square" x="0" y="0" height="30" width="30" fill="white" stroke="black" stroke-width="3" onclick="change(8);"/>
+    </svg>
+    </center>
+  </body>
+</html>
+				
